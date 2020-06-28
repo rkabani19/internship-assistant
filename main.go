@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rkabani19/internship-assistant/client"
+	"github.com/rkabani19/internship-assistant/internship"
 )
 
 type intershipPositions struct {
@@ -37,6 +39,11 @@ func getInternshipLinks(body io.ReadCloser) {
 
 	doc.Find("a[href]").Each(func(index int, item *goquery.Selection) {
 		href, _ := item.Attr("href")
-		fmt.Printf("link: %s - anchor text: %s\n", href, item.Text())
+		title := item.Text()
+		if strings.Contains(strings.ToLower(title), strings.ToLower(internship.Keyword)) {
+			fmt.Printf("keyword: %s - link: %s - anchor text: %s\n", internship.Keyword, href, item.Text())
+		}
 	})
 }
+
+// TODO: Iterate through map of links
