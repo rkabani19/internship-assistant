@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
+	"regexp"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rkabani19/internship-assistant/client"
@@ -43,7 +43,9 @@ func getInternshipLinks(body io.ReadCloser) {
 	doc.Find("a[href]").Each(func(index int, item *goquery.Selection) {
 		href, _ := item.Attr("href")
 		title := item.Text()
-		if strings.Contains(strings.ToLower(title), strings.ToLower(internship.Keyword)) {
+
+		match, _ := regexp.MatchString(fmt.Sprintf(`(?i)%s\b`, internship.Keyword), title)
+		if match {
 			fmt.Printf("link: %s - anchor text: %s\n", href, item.Text())
 		}
 	})

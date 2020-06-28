@@ -16,4 +16,4 @@ var Companies = map[string]string{
 
 // Keyword holds the keywords to parse for in each listing
 // TODO: Make the a list of possible keywords
-const Keyword string = "intern"
+const Keyword string = "Internet"
