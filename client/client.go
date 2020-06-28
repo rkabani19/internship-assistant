@@ -30,7 +30,6 @@ func (ic *InternshipClient) Fetch() (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 
 	return resp, err
 }
