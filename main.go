@@ -20,15 +20,18 @@ type intershipPositions struct {
 var internshipsAvailable []intershipPositions
 
 func main() {
-	internshipClient := client.NewInternshipClient("https://careers.mozilla.org/listings/")
-	resp, err := internshipClient.Fetch()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
+	for company, url := range internship.Companies {
+		internshipClient := client.NewInternshipClient(url)
+		resp, err := internshipClient.Fetch()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
 
-	getInternshipLinks(resp.Body)
+		fmt.Printf("%s\n", company)
+		getInternshipLinks(resp.Body)
+	}
 }
 
 func getInternshipLinks(body io.ReadCloser) {
@@ -41,9 +44,7 @@ func getInternshipLinks(body io.ReadCloser) {
 		href, _ := item.Attr("href")
 		title := item.Text()
 		if strings.Contains(strings.ToLower(title), strings.ToLower(internship.Keyword)) {
-			fmt.Printf("keyword: %s - link: %s - anchor text: %s\n", internship.Keyword, href, item.Text())
+			fmt.Printf("link: %s - anchor text: %s\n", href, item.Text())
 		}
 	})
 }
-
-// TODO: Iterate through map of links
