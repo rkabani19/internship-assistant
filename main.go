@@ -19,22 +19,7 @@ type intershipPositions struct {
 
 var internshipsAvailable []intershipPositions
 
-func main() {
-	for company, url := range internship.Companies {
-		internshipClient := client.NewInternshipClient(url)
-		resp, err := internshipClient.Fetch()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
-		defer resp.Body.Close()
-
-		fmt.Printf("%s\n", company)
-		getInternshipLinks(resp.Body)
-	}
-}
-
-func getInternshipLinks(body io.ReadCloser) {
+func getInternshipLinks(company string, body io.ReadCloser) {
 	doc, err := goquery.NewDocumentFromReader(body)
 	if err != nil {
 		return
@@ -46,7 +31,38 @@ func getInternshipLinks(body io.ReadCloser) {
 
 		match, _ := regexp.MatchString(fmt.Sprintf(`(?i)%s\b`, internship.Keyword), title)
 		if match {
-			fmt.Printf("link: %s - anchor text: %s\n", href, item.Text())
+			internshipsAvailable = append(internshipsAvailable, intershipPositions{
+				companyName: company,
+				position:    title,
+				url:         href,
+			})
 		}
 	})
+}
+
+func printInternships() {
+	var previousCompany string
+	for _, internshipAvailable := range internshipsAvailable {
+		if previousCompany == "" || previousCompany != internshipAvailable.companyName {
+			fmt.Printf("%s:\n\t%s - %s\n", internshipAvailable.companyName, internshipAvailable.position, internshipAvailable.url)
+		} else {
+			fmt.Printf("\t%s - %s\n", internshipAvailable.position, internshipAvailable.url)
+		}
+		previousCompany = internshipAvailable.companyName
+	}
+}
+
+func main() {
+	for company, url := range internship.Companies {
+		internshipClient := client.NewInternshipClient(url)
+		resp, err := internshipClient.Fetch()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
+
+		getInternshipLinks(company, resp.Body)
+	}
+	printInternships()
 }
