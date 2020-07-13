@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rkabani19/internship-assistant/client"
@@ -17,7 +18,10 @@ type intershipPositions struct {
 	url         string
 }
 
-var internshipsAvailable []intershipPositions
+var (
+	internshipsAvailable []intershipPositions
+	mutex                sync.Mutex
+)
 
 func getInternshipLinks(company string, body io.ReadCloser) {
 	doc, err := goquery.NewDocumentFromReader(body)
@@ -31,13 +35,28 @@ func getInternshipLinks(company string, body io.ReadCloser) {
 
 		match, _ := regexp.MatchString(fmt.Sprintf(`(?i)%s\b`, internship.Keyword), title)
 		if match {
+			mutex.Lock()
 			internshipsAvailable = append(internshipsAvailable, intershipPositions{
 				companyName: company,
 				position:    title,
 				url:         href,
 			})
+			mutex.Unlock()
 		}
 	})
+}
+
+func internshipWorker(company string, url string, wg *sync.WaitGroup) {
+	internshipClient := client.NewInternshipClient(url)
+	resp, err := internshipClient.Fetch()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	defer wg.Done()
+
+	getInternshipLinks(company, resp.Body)
 }
 
 func printInternships() {
@@ -53,16 +72,13 @@ func printInternships() {
 }
 
 func main() {
-	for company, url := range internship.Companies {
-		internshipClient := client.NewInternshipClient(url)
-		resp, err := internshipClient.Fetch()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-			os.Exit(1)
-		}
-		defer resp.Body.Close()
+	var wg sync.WaitGroup
 
-		getInternshipLinks(company, resp.Body)
+	for company, url := range internship.Companies {
+		wg.Add(1)
+		go internshipWorker(company, url, &wg)
 	}
+
+	wg.Wait()
 	printInternships()
 }
