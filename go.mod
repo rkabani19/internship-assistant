@@ -3,6 +3,7 @@ module github.com/rkabani19/internship-assistant
 go 1.13
 
 require (
+	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v0.0.0-20170417170307-b6cb39589372
