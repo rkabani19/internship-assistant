@@ -1,5 +1,16 @@
 package internship
 
+// Positions holds neccessary information about each internship position
+type Positions struct {
+	CompanyName string
+	Position    string
+	Url         string
+}
+
+// Available is a container for internships found
+var Available []Positions
+
+// TODO: Move this to a config file
 // Companies is a map of all target companies with their job listing url
 var Companies = map[string]string{
 	"Square":       "https://squareup.com/ca/careers/jobs?type=Intern",
@@ -15,5 +26,4 @@ var Companies = map[string]string{
 }
 
 // Keyword holds the keywords to parse for in each listing
-// TODO: Make the a list of possible keywords
-const Keyword string = "intern"
+const Keyword string = "mobile"
