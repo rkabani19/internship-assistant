@@ -44,7 +44,8 @@ func initConfig() {
 
 		// Search config in home directory with name ".internship-assistant" (without extension).
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".internship-assistant")
+		viper.SetConfigType("json")
+		viper.SetConfigName("test")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
@@ -52,5 +53,7 @@ func initConfig() {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Printf("%v\n", err)
 	}
 }

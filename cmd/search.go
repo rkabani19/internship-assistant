@@ -5,12 +5,14 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/rkabani19/internship-assistant/client"
 	"github.com/rkabani19/internship-assistant/internship"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // searchCmd represents the search command
@@ -22,11 +24,11 @@ var searchCmd = &cobra.Command{
 	},
 }
 
+var mutex sync.Mutex
+
 func init() {
 	rootCmd.AddCommand(searchCmd)
 }
-
-var mutex sync.Mutex
 
 func getInternshipLinks(company string, body io.ReadCloser) {
 	doc, err := goquery.NewDocumentFromReader(body)
@@ -68,7 +70,7 @@ func printInternships() {
 	var previousCompany string
 	for _, internshipAvailable := range internship.Available {
 		if previousCompany == "" || previousCompany != internshipAvailable.CompanyName {
-			fmt.Printf("%s:\n\t%s - %s\n", internshipAvailable.CompanyName, internshipAvailable.Position, internshipAvailable.Url)
+			fmt.Printf("%s:\n\t%s - %s\n", strings.ToUpper(internshipAvailable.CompanyName), internshipAvailable.Position, internshipAvailable.Url)
 		} else {
 			fmt.Printf("\t%s - %s\n", internshipAvailable.Position, internshipAvailable.Url)
 		}
@@ -80,7 +82,7 @@ func search() {
 	var wg sync.WaitGroup
 
 	fmt.Println("Fetching internships...")
-	for company, url := range internship.Companies {
+	for company, url := range viper.GetStringMapString("companies") {
 		wg.Add(1)
 		go internshipWorker(company, url, &wg)
 	}
